@@ -1,0 +1,1 @@
+# rename node_theta node_corsika_theta  N*/*[se]/*/*/node*
