@@ -8,19 +8,23 @@ mcpdir=/home/julian.sitarek/prog/magic-cta-pipe
 
 nsbnoises="0.5 1.0 1.5 2.0 2.5 3.0"
 #nsbnoises="0.5 1.0"
+#nsbnoises="1.5 2.0 2.5 3.0"
 
+#decs0="dec_3476 dec_4822 dec_6166 dec_6676 dec_931 dec_min_1802  dec_min_2924  dec_min_413"
+decs0="dec_min_1802"
+#decs0="All"  # special keyword
 
 # TRAIN SAMPLES
 # e.g. /fefs/aswg/workspace/georgios.voutsinas/AllSky/TrainingDataset/GammaDiffuse/dec_2276/sim_telarray/node_corsika_theta_16.087_az_108.090_/output_v1.4
 #indir0="/fefs/aswg/workspace/georgios.voutsinas/AllSky/TrainingDataset/"
-#particles="GammaDiffuse Protons"
+indir0="/fefs/aswg/data/mc/DL0/LSTProd2/TrainingDataset"
+particles="GammaDiffuse Protons"
 
 # TEST SAMPLES
 # e.g. /fefs/aswg/workspace/georgios.voutsinas/AllSky/TestDataset/sim_telarray/node_theta_10.0_az_102.199_/output_v1.4 
-indir0="/fefs/aswg/workspace/georgios.voutsinas/AllSky/TestDataset/"
-particles="GammaTest"  # GammaTest is special names used in ifs later on !!
+#indir0="/fefs/aswg/workspace/georgios.voutsinas/AllSky/TestDataset/"
+#particles="GammaTest"  # GammaTest is special names used in ifs later on !!
 
-#indir0="/fefs/aswg/mc/LSTProd2/TrainingDataset"
 outdir0="/fefs/aswg/LST1MAGIC/mc/DL1"
 
 #simtel="simtel_v1.4"
@@ -31,8 +35,8 @@ batchA=dpps
 #batchA=aswg
 runsperjob=100
 
-joblogdir=${here}/joblog
-ssubdir0=${here}/ssub
+joblogdir=${here}/dl0/joblog
+ssubdir0=${here}/dl0/ssub
 # -----------------------
 mkdir -p $outdir0 $joblogdir $ssubdir0 $configdir
 script=$mcpdir/magicctapipe/scripts/lst1_magic/lst1_magic_mc_dl0_to_dl1.py
@@ -51,8 +55,10 @@ for noisedim in $nsbnoises; do
 	echo "   processing "$particle
 	if [ $particle = "GammaTest" ]; then
 	    decs="Grid"
-	else 
+	elif [ $decs0 = "All" ]; then
 	    decs=$(basename -a $(ls -d $indir0/$particle/dec*))
+	else
+	    decs=$decs0
 	fi
 	for dec in $decs; do
 	    echo "   processing "$dec
