@@ -69,12 +69,13 @@ for noisedim in $nsbnoises; do
  		ssub=$ssubdir/ssub_${node}.sh
 		echo $ssub >> $startlog
 
+#SBATCH --mem=3g
 		cat<<EOF > $ssub
 #!/bin/sh
 #SBATCH -p short
 #SBATCH -A $batchA
 #SBATCH -J IRF_${tag1}
-#SBATCH --mem=3g
+#SBATCH --mem=4500m
 #SBATCH -n 1
  
 ulimit -l unlimited
