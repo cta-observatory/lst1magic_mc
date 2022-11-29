@@ -12,5 +12,5 @@ MC processing scripts for LST-1+MAGIC joint analysis
 ## Helping scripts:
 
 * `countjobtime.sh` - for accounting of how much resources were used
+* `checkprogress.sh` - for tracking the status of the running processing
 * `trimmc.sh` - special macro to remove some of the MCs with excessively large statistics
-
