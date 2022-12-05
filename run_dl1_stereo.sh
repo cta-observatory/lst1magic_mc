@@ -5,12 +5,17 @@ here=$(pwd)
 configbase=${here}/config_base.yaml
 mcpdir=/home/julian.sitarek/prog/magic-cta-pipe
 
-nsbnoises="0.5 1.0 1.5 2.0 2.5 3.0"
+#nsbnoises="0.5 1.0 1.5 2.0 2.5 3.0"
 #nsbnoises="0.5 1.0"
+nsbnoises="1.5 2.0 2.5 3.0"
 
+#decs0="dec_3476 dec_4822 dec_6166 dec_6676 dec_931 dec_min_1802  dec_min_2924  dec_min_413"
+#decs0="dec_min_1802"
+decs0="dec_2276"
+#decs0="All"  # special keyword
 
-#particles="GammaDiffuse Protons"
-particles="GammaTest"  # GammaTest is special names used in ifs later on !!
+particles="GammaDiffuse Protons"
+#particles="GammaTest"  # GammaTest is special names used in ifs later on !!
 
 indir0="/fefs/aswg/LST1MAGIC/mc/DL1"
 outdir0="/fefs/aswg/LST1MAGIC/mc/DL1Stereo"
@@ -36,8 +41,10 @@ for noisedim in $nsbnoises; do
 	
 	if [ $particle = "GammaTest" ]; then
 	    decs="Grid"
-	else 
+	elif [ "$decs0" = "All" ]; then
 	    decs=$(basename -a $(ls -d $indir1/dec*))
+	else
+	    decs=$decs0
 	fi
 	for dec in $decs; do
 	    echo "   processing "$dec

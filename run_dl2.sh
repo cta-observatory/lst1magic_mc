@@ -6,11 +6,13 @@ configbase=${here}/config_base.yaml
 mcpdir=/home/julian.sitarek/prog/magic-cta-pipe
 
 #nsbnoises="0.5 1.0 1.5 2.0 2.5 3.0"
-nsbnoises="0.5 1.0"
+#nsbnoises="0.5 1.0"
+nsbnoises="1.5 2.0 2.5 3.0"
 
-
-decs0="dec_6166 dec_min_2924"
+#decs0="dec_min_1802"
 #decs0="All"
+#decs0="dec_3476 dec_4822 dec_6166 dec_6676 dec_931 dec_min_2924  dec_min_413"
+decs0="dec_2276"
 
 indir0="/fefs/aswg/LST1MAGIC/mc/DL1Stereo"
 outdir0="/fefs/aswg/LST1MAGIC/mc/DL2"
@@ -35,7 +37,7 @@ particle=GammaTest
 for noisedim in $nsbnoises; do
     echo "Processing noisedim: "$noisedim
     rfdir1=$rfdir0/NSB${noisedim}/$version/
-    if [ $decs0 = "All" ]; then
+    if [ "$decs0" = "All" ]; then
 	decs=$(basename -a $(ls -d $rfdir1/dec*))
     else
 	decs=$decs0

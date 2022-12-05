@@ -6,12 +6,13 @@ configdir=${here}/config/
 configbase=${here}/config_base.yaml
 mcpdir=/home/julian.sitarek/prog/magic-cta-pipe
 
-nsbnoises="0.5 1.0 1.5 2.0 2.5 3.0"
+#nsbnoises="0.5 1.0 1.5 2.0 2.5 3.0"
 #nsbnoises="0.5 1.0"
-#nsbnoises="1.5 2.0 2.5 3.0"
+nsbnoises="1.5 2.0 2.5 3.0"
 
 #decs0="dec_3476 dec_4822 dec_6166 dec_6676 dec_931 dec_min_1802  dec_min_2924  dec_min_413"
-decs0="dec_min_1802"
+#decs0="dec_min_1802"
+decs0="dec_2276"
 #decs0="All"  # special keyword
 
 # TRAIN SAMPLES
@@ -55,7 +56,7 @@ for noisedim in $nsbnoises; do
 	echo "   processing "$particle
 	if [ $particle = "GammaTest" ]; then
 	    decs="Grid"
-	elif [ $decs0 = "All" ]; then
+	elif [ "$decs0" = "All" ]; then
 	    decs=$(basename -a $(ls -d $indir0/$particle/dec*))
 	else
 	    decs=$decs0
