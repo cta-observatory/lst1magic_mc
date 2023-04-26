@@ -6,14 +6,19 @@ configdir=${here}/config/
 configbase=${here}/config_base.yaml
 mcpdir=/home/julian.sitarek/prog/magic-cta-pipe
 
-#nsbnoises="0.5 1.0 1.5 2.0 2.5 3.0"
-#nsbnoises="0.5 1.0"
-nsbnoises="1.5 2.0 2.5 3.0"
+nsbnoises="2.124"
+noisebright="2.766"
+biasdim="0.738"
 
-#decs0="dec_3476 dec_4822 dec_6166 dec_6676 dec_931 dec_min_1802  dec_min_2924  dec_min_413"
-#decs0="dec_min_1802"
-decs0="dec_2276"
-#decs0="All"  # special keyword
+#decs0="dec_6166"
+#decs0="dec_2276"
+decs0="All"  # special keyword
+
+#nodes0="All"
+nodes0=$(cat nodes_test.txt)
+
+#file with previous iteration of processing, to rerun only the jobs that failed or were not finished
+#previous_rcs=/home/julian.sitarek/ws/mc_proc/lstprod2/20230425_process_dec_6166_Franca/v1.3/dl0/joblog/stop_*
 
 # TRAIN SAMPLES
 # e.g. /fefs/aswg/workspace/georgios.voutsinas/AllSky/TrainingDataset/GammaDiffuse/dec_2276/sim_telarray/node_corsika_theta_16.087_az_108.090_/output_v1.4
@@ -24,14 +29,17 @@ particles="GammaDiffuse Protons"
 # TEST SAMPLES
 # e.g. /fefs/aswg/workspace/georgios.voutsinas/AllSky/TestDataset/sim_telarray/node_theta_10.0_az_102.199_/output_v1.4 
 #indir0="/fefs/aswg/workspace/georgios.voutsinas/AllSky/TestDataset/"
-#particles="GammaTest"  # GammaTest is special names used in ifs later on !!
+#e.g. /fefs/aswg/data/mc/DL0/LSTProd2/TestDataset/sim_telarray/node_theta_10.0_az_102.199_/output_v1.4
+indir0="/fefs/aswg/data/mc/DL0/LSTProd2/TestDataset"
+particles="GammaTest"  # GammaTest is special names used in ifs later on !!
 
-outdir0="/fefs/aswg/LST1MAGIC/mc/DL1"
+#outdir0="/fefs/aswg/LST1MAGIC/mc/DL1"
+outdir0="/fefs/aswg/LST1MAGIC/mc/special/20230425/DL1"
 
 #simtel="simtel_v1.4"
 simtel="sim_telarray"
 period="ST0316A"
-version="v01.2"
+version="v01.3"
 batchA=dpps
 #batchA=aswg
 runsperjob=100
@@ -46,8 +54,8 @@ script2=$mcpdir/magicctapipe/scripts/lst1_magic/merge_hdf_files.py
 for noisedim in $nsbnoises; do
     echo "Processing noisedim: "$noisedim
     confignsb=$configdir/config_nsb${noisedim}.yaml
-    noisebright=$(echo $noisedim | awk '{print 1.15*$1^1.115}')
-    biasdim=$(echo $noisedim | awk '{print 0.358*$1^0.805}')
+    #noisebright=$(echo $noisedim | awk '{print 1.15*$1^1.115}')
+    #biasdim=$(echo $noisedim | awk '{print 0.358*$1^0.805}')
     sed -e 's/extra_noise_in_dim_pixels.*/extra_noise_in_dim_pixels: '$noisedim'/g' \
 	-e 's/extra_bias_in_dim_pixels.*/extra_bias_in_dim_pixels: '$biasdim'/g' \
 	-e 's/extra_noise_in_bright_pixels.*/extra_noise_in_bright_pixels: '$noisebright'/g' $configbase > $confignsb
@@ -79,9 +87,19 @@ for noisedim in $nsbnoises; do
 	    echo -n "" >>$startlog
 	    echo -n "" >>$stoplog
 	    echo -n "" >>$failedlog
-	    for nodedir in $(ls -d $indir1/node*); do
+
+	    if [ "$nodes0" = "All" ]; then
+		nodes=$(basename -a $(ls -d $indir1/node*))
+	    else
+		nodes=$nodes0
+	    fi
+
+#	    for nodedir in $(ls -d $indir1/node*); do
+#		indir=$nodedir/output_v1.4
+#		node=$(basename $nodedir)
+	    for node in $nodes; do
+		nodedir=$indir1/$node
 		indir=$nodedir/output_v1.4
-		node=$(basename $nodedir)
 		echo "      processing "$node
 		tag1=${tag0}_${node}
 		echo $tag
@@ -105,13 +123,21 @@ for noisedim in $nsbnoises; do
 		    ii=$(( ii + 1 ))
 		    i=$(( i + 1 ))
 		    if [ "$ii" -eq "$runsperjob" ] || [ "$i" -eq "$nruns" ]; then
-			echo "bunch $ibunch runs: "$thisruns
 			bunchdir=$bunchdir0/bunch$ibunch
 			first=$(echo $thisruns|cut -f1 -d' ')
  			ssub=$ssubdir/ssub_${node}_runs${first}.sh
-			echo $ssub >> $startlog
+			if [[ ! -z $previous_rcs ]]; then
+			    old_rc=$(grep $ssub $previous_rcs| awk '{print $2}' | tail -n 1)
+			    echo "oldrc='"$old_rc"'"
+			fi
 
-			cat<<EOF > $ssub
+			if [ "$old_rc" = "0" ]; then
+			    echo "$ssub already processed skipping"
+			else
+			    
+			    echo "bunch $ibunch runs: "$thisruns			    
+			    echo $ssub >> $startlog
+			    cat<<EOF > $ssub
 #!/bin/sh
 #SBATCH -p long
 #SBATCH -A $batchA
@@ -138,12 +164,12 @@ rc=\$?
 echo $ssub \$rc >> $stoplog
 
 EOF
-
-                        chmod +x $ssub
-			cd $logdir
-			sbatch $ssub
-			cd $here
-
+  
+                            chmod +x $ssub
+			    cd $logdir
+			    sbatch $ssub
+			    cd $here
+			fi
 			thisruns=""
 			ibunch=$(( ibunch + 1 ))
 			ii=0
